@@ -1,13 +1,23 @@
 /** Common config for bookstore. */
 
-
-let DB_URI = `postgresql://`;
-
-if (process.env.NODE_ENV === "test") {
-  DB_URI = `${DB_URI}/books-test`;
-} else {
-  DB_URI = process.env.DATABASE_URL || `${DB_URI}/books`;
+require("dotenv").config();
+let DB_URI = {
+  user: process.env.DB_USER,
+  host: 'localhost',
+  database: '',
+  password: process.env.DB_PASSWORD
 }
+DB_URI.database = (process.env.NODE_ENV === "test")
+  ? "bookstore_test"
+  : "bookstore";
+
+const SECRET_KEY = process.env.SECRET_KEY || "secret";
+
+const BCRYPT_WORK_FACTOR = 12;
 
 
-module.exports = { DB_URI };
+module.exports = {
+  DB_URI,
+  SECRET_KEY,
+  BCRYPT_WORK_FACTOR,
+};
