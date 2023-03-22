@@ -14,7 +14,8 @@
         },
         "author": {
             "type": "string",
-            "description": "Name of the book's author."
+            "description": "Name of the book's author.",
+            "minLength": 3
         },
         "language": {
             "type": "string",

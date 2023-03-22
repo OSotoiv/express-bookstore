@@ -39,6 +39,13 @@ describe("class Book Model Testing", () => {
             })
         )
     })
+    test("GET /books/:id With invalid id", async () => {
+        const badID = "1234569999";
+        const response = await request(app)
+            .get(`/books/${badID}`)
+        expect(response.statusCode).toBe(404);
+        expect(response.body.message).toBe(`There is no book with an isbn ${badID}`)
+    })
     test("POST /books/", async () => {
         const response = await request(app)
             .post(`/books/`)
@@ -61,6 +68,23 @@ describe("class Book Model Testing", () => {
             })
         )
     })
+    test("POST /books/ With invalid body", async () => {
+        const response = await request(app)
+            .post(`/books/`)
+            .send({
+                "isbn": "posttest999",
+                "amazon_url": "https://www.amazon.com/invalid_link",
+                "author": "",
+                "language": "English",
+                "pages": 50,
+                "publisher": "Invalid Publishing",
+                "title": "",
+                "year": 2022
+            })
+        expect(response.statusCode).toBe(400)
+        expect(response.body.message).toContainEqual('instance.author does not meet minimum length of 3')
+        expect(response.body.message).toContainEqual('instance.title does not meet minimum length of 3')
+    })
     test("PUT /books/:isbn", async () => {
         const response = await request(app)
             .put(`/books/posttest123`)
@@ -82,6 +106,44 @@ describe("class Book Model Testing", () => {
         )
 
     })
+    test("PUT /books/:isbn With invalid isbn", async () => {
+        const badISBN = '5678900000'
+        const response = await request(app)
+            .put(`/books/${badISBN}`)
+            .send({
+                "amazon_url": "https://www.amazon.com/invalid_link",
+                "author": "",
+                "language": "English",
+                "pages": 50,
+                "publisher": "Invalid Publishing",
+                "title": "",
+                "year": 2022
+            })
+        expect(response.body.message).toBe(`There is no book with an isbn ${badISBN}`)
+    })
+    test("PUT /books/:isbn With missing properties. Should default to original properties", async () => {
+        const goodISBN = '5678901234';
+        const response = await request(app)
+            .put(`/books/${goodISBN}`)
+            .send({
+                "amazon_url": "https://www.amazon.com/Book5",
+                // "author": "David Kim",
+                "language": "Chinese",
+                "pages": 350,
+                "publisher": "UPDated Publishing5",
+                // "title": "Book Five",
+                "year": 2022
+            })
+        //missing properites will default to original properties
+        expect(response.statusCode).toBe(200);
+        expect(response.body.book).toEqual(
+            expect.objectContaining({
+                title: "Book Five",
+                author: "David Kim",
+                publisher: "UPDated Publishing5"
+            })
+        )
+    })
     test("DELETE /books/:isbn", async () => {
         const isbn = 'posttest123'
         const response = await request(app)
@@ -89,6 +151,16 @@ describe("class Book Model Testing", () => {
         expect(response.statusCode).toBe(200)
         expect(response.body.message).toBe('Book deleted')
         const book = await db.query(`SELECT * FROM books WHERE isbn = $1`, [isbn])
+        expect(book.rows).toHaveLength(0);
+    })
+    test("DELETE /books/:isbn With invalid ISBN", async () => {
+        const badISBN = '5678900000'
+        const response = await request(app)
+            .delete(`/books/${badISBN}`)
+        expect(response.statusCode).toBe(404);
+        expect(response.body.message).toBe(`There is no book with an isbn '${badISBN}`);
+
+        const book = await db.query(`SELECT * FROM books WHERE isbn = $1`, [badISBN])
         expect(book.rows).toHaveLength(0);
     })
 

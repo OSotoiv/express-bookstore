@@ -7,6 +7,16 @@ const ExpressError = require('../expressError')
 /** Collection of related methods for books. */
 
 class Book {
+  constructor({ isbn, amazon_url, author, language, pages, publisher, title, year }) {
+    this.isbn = isbn,
+      this.amazon_url,
+      this.author,
+      this.language,
+      this.pages,
+      this.publisher,
+      this.title,
+      this.year
+  }
   /** given an isbn, return book data with that isbn:
    *
    * => {isbn, amazon_url, author, language, pages, publisher, title, year}
@@ -27,7 +37,7 @@ class Book {
             WHERE isbn = $1`, [isbn]);
 
     if (bookRes.rows.length === 0) {
-      throw { message: `There is no book with an isbn '${isbn}`, status: 404 }
+      throw { message: `There is no book with an isbn ${isbn}`, status: 404 }
     }
 
     return bookRes.rows[0];
@@ -112,6 +122,7 @@ class Book {
    * */
 
   static async update(isbn, data) {
+    const book = await this.findOne(isbn);
     const result = await db.query(
       `UPDATE books SET 
             amazon_url=($1),
@@ -131,19 +142,19 @@ class Book {
                   title,
                   year`,
       [
-        data.amazon_url,
-        data.author,
-        data.language,
-        data.pages,
-        data.publisher,
-        data.title,
-        data.year,
+        data.amazon_url || book.amazon_url,
+        data.author || book.author,
+        data.language || book.language,
+        data.pages || book.pages,
+        data.publisher || book.publisher,
+        data.title || book.title,
+        data.year || book.year,
         isbn
       ]
     );
-
+    //might not need this
     if (result.rows.length === 0) {
-      throw { message: `There is no book with an isbn '${isbn}`, status: 404 }
+      throw { message: `There is no book with an isbn ${isbn}`, status: 404 }
     }
 
     return result.rows[0];
