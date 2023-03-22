@@ -5,8 +5,7 @@
     "properties": {
         "isbn": {
             "type": "string",
-            "description": "International Standard Book Number (ISBN) of the book.",
-            "pattern": "^[0-9]{10,13}$"
+            "description": "International Standard Book Number (ISBN) of the book."
         },
         "amazon_url": {
             "type": "string",
@@ -32,6 +31,7 @@
         },
         "title": {
             "type": "string",
+            "minLength": 3,
             "description": "Title of the book."
         },
         "year": {

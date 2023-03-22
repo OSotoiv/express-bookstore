@@ -1,6 +1,7 @@
 const db = require("../db");
 const jsonschema = require("jsonschema");
-const bookSchema = require("../schemas/bookSchema.json");
+const bookSchema = require("../schemas/bookSchema");
+const ExpressError = require('../expressError')
 
 
 /** Collection of related methods for books. */
@@ -64,8 +65,10 @@ class Book {
    * */
 
   static async create(data) {
-    const result = await db.query(
-      `INSERT INTO books (
+    const schemaRes = jsonschema.validate(data, bookSchema);
+    if (schemaRes.valid) {
+      const result = await db.query(
+        `INSERT INTO books (
             isbn,
             amazon_url,
             author,
@@ -83,19 +86,21 @@ class Book {
                    publisher,
                    title,
                    year`,
-      [
-        data.isbn,
-        data.amazon_url,
-        data.author,
-        data.language,
-        data.pages,
-        data.publisher,
-        data.title,
-        data.year
-      ]
-    );
-
-    return result.rows[0];
+        [
+          data.isbn,
+          data.amazon_url,
+          data.author,
+          data.language,
+          data.pages,
+          data.publisher,
+          data.title,
+          data.year
+        ]
+      );
+      return result.rows[0];
+    }
+    const errors = schemaRes.errors.map(e => e.stack);
+    throw new ExpressError(errors, 400)
   }
 
   /** Update data with matching ID to data, return updated book.
